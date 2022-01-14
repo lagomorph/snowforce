@@ -1,0 +1,91 @@
+zero page vars while playing:
+
+69 - difficulty (0 - easy, 1 - normal, 2 - hard, 3 - manic)
+6a - set to #$c0 when picking up I and counts down (visual for invincibility)
+6d - set to #$48 when starting new life, #$c0 when picking up I, and counts down (invincibility)
+c8 - BCD number of presents picked up
+cd - selected weapon
+ce - shield strength (starts at 4 - max)
+d0-d2 - BCD score x 100
+d3-d4 - BCD next bonus x 10000 (starts at 50000, increments 40000 when hit, but at the start of each level this is reevaluated and set to the next 50000 higher than current score)
+
+d5 - auto fire (0, 1)
+d6 - level (0-$11 for 18 levels)
+d7 - lives left (max 9)
+db - weapon 0 power level (max 2 or 4)
+dc - weapon 1 power level (max 2 or 4)
+dd - weapon 2 power level (max 2 or 4)
+de - weapon 3 power level (max 2 or 4)
+if 0 based level < 4, max power level of 2 else 4
+
+857e - mirrors db-de but only increment through level (no decrement)
+used to indicate weapons enabled state
+synced with db-de at level start and the weapon selected is incremented, the
+idea seems to be that any weapons with power level 0 are disabled at the start
+of the level except the one that was selected
+
+~~~
+
+password / level save:
+
+The twelve character password represents twelve, five bit values.
+The alphabet for these values (0-31) is A-Z1-6.
+The file saved on disk (SNFGAME.DAT) contains two load address bytes of
+63 06 ($0663) and the twelve, five bit values concatenated with four zero bits
+at the end to make eight full bytes.
+When the file is loaded from disk or the password is entered, the data is
+eor'ed with the string GIZMO20 (47 49 5a 4d 4f 32 30) to represent the save
+game state. The code verifies the checksum* and validates that the values
+are in range.**
+
+The save game state is stored at $0663 and represents:
+
+663-665 BCD score x 100
+666 aaabbbcc (weapon 1 power level, weapon 0 power level, selected weapon)
+667 aaabbbcc (weapon 3 power level, weapon 2 power level, difficulty)
+668 llllsssv (lives left, shield strength, high bit of leVel)
+669 checksum*
+66a vvvvxxxx (lower four bits of leVel, unused)
+
+Example:
+
+password:
+    1DNFVX5LOOZQ
+five bit values:
+    11010 00011 01101 00101 10101 10111 11110 01011 01110 01110 11001 10000
+concatenated:
+    d0 da 5a df cb 73 b3 00
+eor:
+    d0 da 5a df cb 73 b3 00
+    47 49 5a 4d 4f 32 30    (GIZMO20)
+    -----------------------
+    97 93 00 92 84 41 83 00
+
+97 93 00 -> score: 939700
+92 -> 100 100 10
+    weapon 1 power level: 4
+    weapon 0 power level: 4
+    selected weapon: 2
+84 -> 100 001 00
+    weapon 3 power level: 4
+    weapon 2 power level: 1
+    difficulty: 0
+41 -> 0100 000 1
+    lives left: 4
+    shield strength: 0
+    high bit of level: 1
+83 -> checksum*
+00 -> 0000 0000
+    level: 16 (1 0000)
+
+
+* The checksum is calculated by adding bytes at $0663-$0668 and $066a. This
+should equal what's at $0669. The calculation propagates carries except
+for one as a result of adding the last byte at $066a. I'm not sure if this
+is intentional or not.
+
+** There is a minor bug when validating the level number. The number checked
+against seems to be copied from the included companion game Soul Force-X
+which has two more levels. It's possible to crash the game with either a
+password or disk load with an out of range level number. To fix, the
+cmp #$13 should be cmp #$11 at disk offset $e83b in the GS64 cart image.

@@ -1,0 +1,30 @@
+Conversion from C64 Games System cartridge to Magic Desk
+
+extract to bin file (can use cartconv from VICE)
+# cartconv -t bin -i Snow\ Force\ v1.0\ \(GS64\).crt -o sfmd.bin
+
+replace all instances of the following (src --> dest) in bin file:
+9d 00 de    sta $de00,x  --> 8e 00 de    stx $de00 
+99 00 de    sta $de00,y  --> 8c 00 de    sty $de00
+8d 00 de    sta $de00    --> 20 20 01    jsr $0120
+
+at 000c replace:
+8d 16 d0    sta $d016 --> 20 e7 9f    jsr $9fe7
+
+put the following code in unused space at 1fe7 in bin file:
+1fe7  a0 f8       ldy #$f8    ; copy code at $9ff8 to RAM at $0120
+1fe9  b9 00 9f    lda $9f00,y
+1fec  99 28 00    sta $0028,y
+1fef  c8          iny
+1ff0  d0 f7       bne $9fe9
+1ff2  a9 00       lda #$00    ; restore code at 800a
+1ff4  8d 16 d0    sta $d016
+1ff7  60          rts
+1ff8  48          pha
+1ff9  a9 00       lda #$00
+1ffb  8d 00 de    sta $de00
+1ffe  68          pla
+1fff  60          rts
+
+make Magic Desk cart from modified bin file (can use cartconv from VICE)
+# cartconv -t md -i sfmd.bin -o sfmd.crt
