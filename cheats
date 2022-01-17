@@ -26,6 +26,44 @@ of the level except the one that was selected
 
 ~~~
 
+Snow Force v1.0 (GS64).crt mods
+
+starting number of lives (3, max 9)
+  file offset: $3e784
+
+infinite lives
+  file offsets:
+    $3ea76 -> ea
+    $3ea77 -> ea
+
+infinite shield
+  file offsets:
+    $3ea01 -> 09
+    $3ea02 -> 04
+    $3ea20 -> a0
+    $3ea21 -> 04
+    $40190 -> 60
+    $404de -> 60
+
+infinite weapons
+  file offsets:
+    $3e7ed -> a0
+    $3e7ee -> 04
+    $3e7fe -> a9
+    $3e7ff -> 04
+    $3f630 -> 69
+    $3f631 -> 04
+    $3facb -> ea
+    $3facc -> a9
+    $3facd -> 04
+    $40359 -> ea
+    $4035a -> c9
+    $4035b -> 04
+    $42353 -> a9
+    $42354 -> 04
+
+~~~
+
 password / level save:
 
 The twelve character password represents twelve, five bit values.
